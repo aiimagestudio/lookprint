@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from lookprint.constants import METRIC_META, VALID_DECISIONS  # noqa: E402
+from lookprint.constants import METRIC_EN, METRIC_LABELS, METRIC_META, VALID_DECISIONS  # noqa: E402
 from lookprint.diagnosis import add_diagnosis  # noqa: E402
 from lookprint.pipeline import build_gold, score_candidates  # noqa: E402
 from lookprint.store import (  # noqa: E402
@@ -153,8 +153,11 @@ def get_project():
             "analyzed_at": fp.get("analyzed_at"),
         },
         "metric_meta": [
-            {"key": k, "label": lab, "unit": unit, "hint": hint} for k, lab, unit, hint in METRIC_META
+            {"key": k, "label": lab, "unit": unit, "hint": hint, "label_en": en[0], "hint_en": en[1]}
+            for k, lab, unit, hint in METRIC_META
+            for en in (METRIC_EN.get(k),)
         ],
+        "metric_labels": METRIC_LABELS,
     }
 
 
@@ -369,6 +372,8 @@ def export_files(body: ExportBody):
         raise HTTPException(400, "kind must be candidates, dropped, or remaining")
     dest = Path(body.dest).expanduser()
     proj = load_project()
+    if not proj.get("gold_path") or not Path(proj["gold_path"]).is_dir():
+        raise HTTPException(400, "金标准路径未设置，请先在「项目」页设置")
     gold = Path(proj["gold_path"]).expanduser()
     try:
         if dest.resolve() == gold.resolve():

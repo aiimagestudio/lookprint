@@ -1,12 +1,15 @@
 (() => {
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
+  const t = window.t;
 
   const state = {
     tab: "overview",
+    lang: "zh",
     project: null,
     fingerprint: null,
     metricMeta: [],
+    metricLabels: {},
     overview: null,
     review: [],
     reviewFilter: "",
@@ -50,21 +53,65 @@
     return `/api/raw?path=${encodeURIComponent(path)}`;
   }
 
+  // ---- i18n helpers ----
+
+  function langKey() {
+    return state.lang;
+  }
+
+  function mLabel(key) {
+    const m = state.metricLabels[key];
+    if (!m) return key;
+    return state.lang === "en" ? m.en || m.zh : m.zh || m.en;
+  }
+
+  function applyStatic() {
+    document.documentElement.lang = state.lang === "en" ? "en" : "zh-CN";
+    $$("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n)));
+    $$("[data-i18n-ph]").forEach((el) => (el.placeholder = t(el.dataset.i18nPh)));
+    $("#langBtn").textContent = state.lang === "en" ? "中文" : "EN";
+  }
+
+  function setLang(lang) {
+    state.lang = lang;
+    localStorage.setItem("lookprint.lang", lang);
+    window.LOOKPRINT_LANG = lang;
+    applyStatic();
+    if (state.tab === "overview") loadOverview();
+    else if (state.tab === "review") loadReview(true);
+    else if (state.tab === "scan") renderScan();
+  }
+
+  // ---- diagnosis rendering ----
+
   const FAM_CLS = {
-    "调色": "fam-tone",
-    "光影·题材": "fam-light",
-    "技术": "fam-tech",
-    "偏离贡献": "fam-combo",
+    tone: "fam-tone",
+    light: "fam-light",
+    tech: "fam-tech",
+    combo: "fam-combo",
   };
 
   function diagHTML(row) {
     const dg = row.diagnosis;
     if (!dg || !dg.families || !dg.families.length) return "";
+    const kind = dg.kind || "in";
+    const near = dg.near && (kind === "tone" || kind === "multi" || kind === "tech");
+    const vKey = near ? `v_${kind}_near` : `v_${kind}`;
+    const aKey = near ? `a_${kind}_near` : `a_${kind}`;
     const fams = dg.families
-      .map((f) => `<div class="fam ${FAM_CLS[f.family] || ""}"><span>${f.family}</span>${f.hits.join(" · ")}</div>`)
+      .map((f) => {
+        const hits = f.hits
+          .map((h) => {
+            const label = mLabel(h.key);
+            if (h.z != null) return `${label} ${h.z >= 0 ? "+" : ""}${h.z}σ`;
+            return `${label}${state.lang === "en" ? " " : ""}${t(h.dir === "low" ? "dir_low" : "dir_high")}`;
+          })
+          .join(" · ");
+        return `<div class="fam ${FAM_CLS[f.key] || ""}"><span>${t(`f_${f.key}`)}</span>${hits}</div>`;
+      })
       .join("");
-    const advice = dg.advice ? `<span class="adv">${dg.advice}</span>` : "";
-    return `<div class="verdict k-${dg.kind || "in"}">${dg.verdict}</div>${advice}${fams}`;
+    const advice = t(aKey) ? `<span class="adv">${t(aKey)}</span>` : "";
+    return `<div class="verdict k-${kind}">${t(vKey)}</div>${advice}${fams}`;
   }
 
   function setTab(name) {
@@ -88,8 +135,8 @@
           state.jobTimer = setTimeout(tick, 400);
           return;
         }
-        if (j.status === "error") toast(j.error || "任务失败");
-        else toast("完成");
+        if (j.status === "error") toast(j.error || "error");
+        else toast(t("done"));
         setTimeout(() => ($("#jobBar").hidden = true), 1200);
         loadProject();
         if (j.kind === "analyze") loadOverview();
@@ -105,12 +152,13 @@
     const data = await api("/api/project");
     state.project = data.project;
     state.metricMeta = data.metric_meta;
-    $("#projectTag").textContent = `${data.project.name} · ${data.project.gold_path}`;
+    state.metricLabels = data.metric_labels || {};
+    $("#projectTag").textContent = `${data.project.name} · ${data.project.gold_path || "—"}`;
     $("#projName").value = data.project.name;
     $("#goldPath").value = data.project.gold_path;
     $("#percentile").value = data.project.threshold_percentile;
     if (!data.has_fingerprint) {
-      $("#heroStats").innerHTML = `<div class="stat"><span>还没有指纹</span><b>可在「项目」里分析</b></div>`;
+      $("#heroStats").innerHTML = `<div class="stat"><span>${t("no_fp")}</span><b>${t("no_fp_sub")}</b></div>`;
     }
     return data;
   }
@@ -121,19 +169,19 @@
     const diag = diagHTML(row);
     const pass = row.pass === true || (mode === "review" && Number(row.mahalanobis) < state.threshold);
     const badge = mode === "scan"
-      ? `<span class="badge ${row.pass ? "pass" : "fail"}">${row.pass ? "符合" : "复核"} ${d}</span>`
+      ? `<span class="badge ${row.pass ? "pass" : "fail"}">${row.pass ? t("b_pass") : t("b_review")} ${d}</span>`
       : `<span class="badge">${d}</span>`;
     let actions = "";
     if (mode === "review") {
       const on = row.decision || "";
       actions = `<div class="actions">
-        <button data-act="keep" class="${on === "keep" ? "on-keep" : ""}">保留</button>
-        <button data-act="maybe" class="${on === "maybe" ? "on-maybe" : ""}">待定</button>
-        <button data-act="drop" class="${on === "drop" ? "on-drop" : ""}">剔除</button>
+        <button data-act="keep" class="${on === "keep" ? "on-keep" : ""}">${t("keep")}</button>
+        <button data-act="maybe" class="${on === "maybe" ? "on-maybe" : ""}">${t("maybe")}</button>
+        <button data-act="drop" class="${on === "drop" ? "on-drop" : ""}">${t("drop")}</button>
       </div>`;
     } else if (mode === "scan") {
       actions = `<div class="actions">
-        <button data-act="mark" class="${row.marked ? "on-keep" : ""}">${row.marked ? "已标记" : "标记候选"}</button>
+        <button data-act="mark" class="${row.marked ? "on-keep" : ""}">${row.marked ? t("marked") : t("mark")}</button>
       </div>`;
     }
     return `<article class="card" data-path="${encodeURIComponent(path)}" data-file="${row.file}" data-mode="${mode}">
@@ -182,20 +230,23 @@
     state.fingerprint = ov.fingerprint;
     const fp = ov.fingerprint;
     if (!fp) {
-      $("#heroStats").innerHTML = `<div class="stat"><span>未分析</span><b>打开「项目」页开始</b></div>`;
+      $("#heroStats").innerHTML = `<div class="stat"><span>${t("no_fp")}</span><b>${t("no_fp_sub")}</b></div>`;
       return;
     }
     const cards = [
-      ["图片数", fp.n_images, "金标准"],
-      ["距离中位", fp.maha_median?.toFixed(2), "越小越像集合"],
-      ["90 分位", fp.maha_p90?.toFixed(2), "默认离群阈值"],
-      ["GMM 簇", fp.n_gmm_components, "1 = 风格单簇"],
+      ["n_images", fp.n_images, "gold_sub"],
+      ["median_dist", fp.maha_median?.toFixed(2), "median_dist_sub"],
+      ["p90", fp.maha_p90?.toFixed(2), "p90_sub"],
+      ["clusters", fp.n_gmm_components, "clusters_sub"],
     ];
     (ov.cards || []).slice(0, 4).forEach((c) => {
-      cards.push([c.label, Number(c.median).toFixed(3), `IQR ${Number(c.q1).toFixed(3)}–${Number(c.q3).toFixed(3)}`]);
+      const label = state.lang === "en" ? c.label_en || c.label : c.label;
+      cards.push([label, Number(c.median).toFixed(3), `IQR ${Number(c.q1).toFixed(3)}–${Number(c.q3).toFixed(3)}`]);
     });
+    const FIXED_LABELS = new Set(["n_images", "median_dist", "p90", "clusters"]);
+    const FIXED_SUBS = new Set(["gold_sub", "median_dist_sub", "p90_sub", "clusters_sub"]);
     $("#heroStats").innerHTML = cards
-      .map(([k, v, s]) => `<div class="stat"><span>${k}</span><b>${v ?? "—"}</b><span>${s}</span></div>`)
+      .map(([k, v, s]) => `<div class="stat"><span>${FIXED_LABELS.has(k) ? t(k) : k}</span><b>${v ?? "—"}</b><span>${FIXED_SUBS.has(s) ? t(s) : s}</span></div>`)
       .join("");
     $("#typicalGrid").innerHTML = ov.typical.map((r) => cardHTML(r, "preview")).join("");
     $("#outlierPreview").innerHTML = ov.outliers.map((r) => cardHTML(r, "preview")).join("");
@@ -216,11 +267,11 @@
       data: {
         datasets: [
           {
-            label: "局部对比 × 饱和",
+            label: t("chart_label"),
             data: points.map((p) => ({ x: p.x, y: p.y, file: p.file })),
             backgroundColor: points.map((p) => {
-              const t = Math.min(1, (p.d - 3) / 8);
-              return `hsla(${40 - t * 40}, 80%, 60%, 0.85)`;
+              const dd = Math.min(1, (p.d - 3) / 8);
+              return `hsla(${40 - dd * 40}, 80%, 60%, 0.85)`;
             }),
           },
         ],
@@ -232,8 +283,8 @@
           tooltip: { callbacks: { label: (c) => c.raw.file } },
         },
         scales: {
-          x: { title: { display: true, text: "局部对比", color: "#a8a49c" }, ticks: { color: "#a8a49c" }, grid: { color: "#2a2a34" } },
-          y: { title: { display: true, text: "饱和度", color: "#a8a49c" }, ticks: { color: "#a8a49c" }, grid: { color: "#2a2a34" } },
+          x: { title: { display: true, text: t("axis_x"), color: "#a8a49c" }, ticks: { color: "#a8a49c" }, grid: { color: "#2a2a34" } },
+          y: { title: { display: true, text: t("axis_y"), color: "#a8a49c" }, ticks: { color: "#a8a49c" }, grid: { color: "#2a2a34" } },
         },
       },
     });
@@ -243,8 +294,8 @@
     if (fetchData) {
       const ov = state.overview || (await api("/api/overview"));
       state.overview = ov;
-      const fp = ov.fingerprint || state.fingerprint;
-      state.fingerprint = fp;
+      state.fingerprint = ov.fingerprint || state.fingerprint;
+      const fp = state.fingerprint;
       const slider = $("#dSlider");
       const maxD = Math.max(8, ...((ov.scatter || []).map((p) => Number(p.d) || 0)));
       slider.min = "2";
@@ -267,10 +318,10 @@
     });
     const nAll = (state.overview && state.overview.n_metrics) || 0;
     const nDrop = ((state.overview && state.overview.decisions) || {}).drop || 0;
-    $("#reviewCount").textContent = `${items.length} / ${state.review.length} 张离群 · 剩余 ${nAll - nDrop}/${nAll}`;
+    $("#reviewCount").textContent = t("review_count", { a: items.length, b: state.review.length, c: nAll - nDrop, d: nAll });
     const el = $("#reviewGrid");
     if (!items.length) {
-      el.innerHTML = `<div class="empty">这个阈值下没有图片</div>`;
+      el.innerHTML = `<div class="empty">${t("empty_cut")}</div>`;
       return;
     }
     el.innerHTML = items.map((r) => cardHTML(r, "review")).join("");
@@ -286,11 +337,15 @@
   function renderScan() {
     const data = state.scan;
     if (!data || !data.items) {
-      $("#scanGrid").innerHTML = `<div class="empty">指定一个文件夹并扫描</div>`;
+      $("#scanGrid").innerHTML = `<div class="empty">${t("empty_scan")}</div>`;
       $("#scanSummary").textContent = "";
       return;
     }
-    $("#scanSummary").textContent = `${data.n_pass || 0} 符合 / ${data.n} 张 · 阈值 ${Number(data.threshold).toFixed(2)}`;
+    $("#scanSummary").textContent = t("scan_summary", {
+      p: data.n_pass || 0,
+      n: data.n,
+      t: Number(data.threshold).toFixed(2),
+    });
     const f = state.scanFilter;
     const items = data.items.filter((r) => {
       if (f === "pass") return r.pass;
@@ -300,7 +355,7 @@
     });
     const el = $("#scanGrid");
     if (!items.length) {
-      el.innerHTML = `<div class="empty">没有匹配的图片</div>`;
+      el.innerHTML = `<div class="empty">${t("no_match")}</div>`;
       return;
     }
     el.innerHTML = items.map((r) => cardHTML(r, "scan")).join("");
@@ -320,11 +375,11 @@
     if (mode === "review") {
       const on = row.decision || "";
       actions.innerHTML = `
-        <button data-act="keep" class="${on === "keep" ? "on-keep" : ""}">1 保留</button>
-        <button data-act="maybe" class="${on === "maybe" ? "on-maybe" : ""}">2 待定</button>
-        <button data-act="drop" class="${on === "drop" ? "on-drop" : ""}">3 剔除</button>`;
+        <button data-act="keep" class="${on === "keep" ? "on-keep" : ""}">${t("k_keep")}</button>
+        <button data-act="maybe" class="${on === "maybe" ? "on-maybe" : ""}">${t("k_maybe")}</button>
+        <button data-act="drop" class="${on === "drop" ? "on-drop" : ""}">${t("k_drop")}</button>`;
     } else if (mode === "scan") {
-      actions.innerHTML = `<button data-act="mark" class="${row.marked ? "on-keep" : ""}">${row.marked ? "取消标记" : "标记候选"}</button>`;
+      actions.innerHTML = `<button data-act="mark" class="${row.marked ? "on-keep" : ""}">${row.marked ? t("unmark") : t("mark")}</button>`;
     } else actions.innerHTML = "";
     actions.querySelectorAll("[data-act]").forEach((b) =>
       b.addEventListener("click", () => onAction(mode, row, b.dataset.act).then(() => openLb(state.lb.list, state.lb.index, mode)))
@@ -347,8 +402,8 @@
     state.browseTarget = target;
     state.exportKind = opts.kind || "";
     $("#folderModal").hidden = false;
-    $("#fmTitle").textContent = target === "export" ? "导出到文件夹" : "选择文件夹";
-    $("#fmPick").textContent = target === "export" ? "导出到此文件夹" : "使用此文件夹";
+    $("#fmTitle").textContent = target === "export" ? t("export_to") : t("select_folder");
+    $("#fmPick").textContent = target === "export" ? t("export_here") : t("use_this");
     let start = "";
     if (target === "gold") start = $("#goldPath").value || state.project?.gold_path || "";
     else if (target === "scan") start = $("#scanFolder").value;
@@ -359,32 +414,31 @@
   async function doExport(kind, dest) {
     const r = await api("/api/export", { method: "POST", body: { dest, kind } });
     state.lastExportDir = dest;
-    toast(`已复制 ${r.n} 张到 ${r.dest}（原图未删）`);
+    toast(t("copied", { n: r.n, d: r.dest }));
     return r;
   }
 
   async function renderBrowse(path) {
     const data = await api(`/api/browse?path=${encodeURIComponent(path || "")}`);
-    $("#fmPath").textContent = data.path || "选择磁盘";
+    $("#fmPath").textContent = data.path || t("pick_drive");
     $("#fmPath").dataset.path = data.path || "";
-    $("#fmInfo").textContent = data.path ? `${data.n_images} 张图` : "";
+    $("#fmInfo").textContent = data.path ? t("n_images_fmt", { n: data.n_images }) : "";
     const rows = [];
     if (data.parent || data.path) {
-      rows.push(`<button data-path="${encodeURIComponent(data.parent || "")}">.. 上级</button>`);
+      rows.push(`<button data-path="${encodeURIComponent(data.parent || "")}">${t("up_level")}</button>`);
     }
     for (const d of data.dirs) {
       rows.push(`<button data-path="${encodeURIComponent(d.path)}">📁 ${d.name}</button>`);
     }
-    $("#fmList").innerHTML = rows.join("") || "<div class='empty'>空</div>";
+    $("#fmList").innerHTML = rows.join("") || `<div class='empty'>${t("empty_list")}</div>`;
     $$("#fmList button").forEach((b) =>
       b.addEventListener("click", () => renderBrowse(decodeURIComponent(b.dataset.path)))
     );
   }
 
-
-
   function bind() {
     $$(".tabs button").forEach((b) => b.addEventListener("click", () => setTab(b.dataset.tab)));
+    $("#langBtn").addEventListener("click", () => setLang(state.lang === "en" ? "zh" : "en"));
     $("#dSlider").addEventListener("input", () => {
       $("#dValue").textContent = Number($("#dSlider").value).toFixed(2);
     });
@@ -411,7 +465,7 @@
     $("#fmPick").addEventListener("click", async () => {
       const p = $("#fmPath").dataset.path;
       if (!p) {
-        toast("请先进入一个文件夹");
+        toast(t("enter_folder"));
         return;
       }
       if (state.browseTarget === "gold") {
@@ -454,8 +508,8 @@
             threshold_percentile: Number($("#percentile").value),
           },
         });
-        $("#settingsStatus").textContent = "已保存";
-        toast("项目已保存");
+        $("#settingsStatus").textContent = t("saved");
+        toast(t("toast_saved"));
         loadProject();
       } catch (e) {
         toast(e.message);
@@ -479,11 +533,11 @@
     });
     $("#markPass").addEventListener("click", async () => {
       const items = (state.scan?.items || []).filter((r) => r.pass);
-      if (!items.length) return toast("没有符合项");
+      if (!items.length) return toast(t("no_pass"));
       await api("/api/candidates/mark", { method: "PUT", body: { paths: items.map((r) => r.path), marked: true } });
       items.forEach((r) => (r.marked = true));
       renderScan();
-      toast(`已标记 ${items.length} 张`);
+      toast(t("marked_n", { n: items.length }));
     });
     $("#exportMarked").addEventListener("click", () => pickFolder("export", { kind: "candidates" }));
     $("#exportDropped").addEventListener("click", () => pickFolder("export", { kind: "dropped" }));
@@ -511,6 +565,9 @@
   }
 
   async function boot() {
+    state.lang = localStorage.getItem("lookprint.lang") || ((navigator.language || "zh").toLowerCase().startsWith("zh") ? "zh" : "en");
+    window.LOOKPRINT_LANG = state.lang;
+    applyStatic();
     bind();
     $("#folderModal").hidden = true;
     $("#lightbox").hidden = true;

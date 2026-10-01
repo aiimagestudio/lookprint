@@ -45,9 +45,9 @@ def analyze_folder(folder: Path, recursive: bool, progress: ProgressCb | None = 
 
 def build_gold(project_id: str | None = None, progress: ProgressCb | None = None) -> dict:
     proj = load_project(project_id)
-    gold = Path(proj["gold_path"])
-    if not gold.is_dir():
-        raise FileNotFoundError(f"金标准文件夹不存在: {gold}")
+    gold = Path(proj["gold_path"]) if proj.get("gold_path") else None
+    if gold is None or not gold.is_dir():
+        raise ValueError("请先在「项目」页设置金标准路径，再重新分析")
     d = project_dir(proj["id"])
     old_fp = load_json(d / "fingerprint.json", None)
 

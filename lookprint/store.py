@@ -10,20 +10,28 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "data"
 PROJECTS = DATA / "projects"
 
-DEFAULT_GOLD = Path(r"F:\ai-toolkit\datasets\qwenimage2_1_radiancechromevoluptuous_v1_0")
-DEFAULT_PROJECT_ID = "radiance-chrome"
-
-# 数据集是图片 + caption 的组合；caption 与图片同名只差扩展名
-CAPTION_EXTS = (".txt", ".caption")
+# 金标准路径不预设：首次启动由用户在「项目」页设置自己的数据集
+DEFAULT_PROJECT_ID = "default"
+CAPTION_EXTS = (".txt", ".caption")  # 数据集是图片 + caption 的组合；caption 与图片同名只差扩展名
 
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _default_pid() -> str:
+    """默认项目：优先 'default'；否则（兼容老数据）取已有项目目录中的第一个。"""
+    if (PROJECTS / DEFAULT_PROJECT_ID).is_dir():
+        return DEFAULT_PROJECT_ID
+    if PROJECTS.is_dir():
+        dirs = sorted(p.name for p in PROJECTS.iterdir() if p.is_dir())
+        if dirs:
+            return dirs[0]
+    return DEFAULT_PROJECT_ID
+
+
 def project_dir(project_id: str | None = None) -> Path:
-    pid = project_id or DEFAULT_PROJECT_ID
-    d = PROJECTS / pid
+    d = PROJECTS / (project_id or _default_pid())
     d.mkdir(parents=True, exist_ok=True)
     (d / "plots").mkdir(exist_ok=True)
     (d / "scans").mkdir(exist_ok=True)
@@ -33,8 +41,8 @@ def project_dir(project_id: str | None = None) -> Path:
 def default_project() -> dict:
     return {
         "id": DEFAULT_PROJECT_ID,
-        "name": "RadianceChromeVoluptuous",
-        "gold_path": str(DEFAULT_GOLD),
+        "name": "My Style",
+        "gold_path": "",
         "threshold_percentile": 90,
         "created_at": utc_now(),
         "updated_at": utc_now(),

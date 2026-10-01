@@ -101,6 +101,7 @@ h2 small { color: var(--muted); letter-spacing: 0; text-transform: none; font: 1
 .actions button.on-keep, .lb-actions button.on-keep { background: var(--keep); color: #062; border-color: var(--keep); }
 .actions button.on-drop, .lb-actions button.on-drop { background: var(--drop); color: #fff; border-color: var(--drop); }
 .actions button.on-maybe, .lb-actions button.on-maybe { background: var(--maybe); color: #321; border-color: var(--maybe); }
+.lang-btn { min-width: 44px; }
 .plots { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .plots img { width: 100%; border: 1px solid var(--line); background: #111; }
 .chart-wrap { background: var(--panel); border: 1px solid var(--line); padding: 12px; height: 420px; }
