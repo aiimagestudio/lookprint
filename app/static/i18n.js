@@ -10,6 +10,8 @@ window.LOOKPRINT_I18N = {
     p90: "90 分位", p90_sub: "默认离群阈值",
     clusters: "GMM 簇", clusters_sub: "1 = 风格单簇",
     no_fp: "还没有指纹", no_fp_sub: "可在「项目」里分析",
+    go_setup: "去「项目」页设置金标准数据集",
+    go_setup_desc: "先在「项目」页设置你已选稳的数据集文件夹并分析，之后一切从这里开始。剔除只写标记，原图不动。",
 
     typical9: "典型 9 张", typical9_sub: "离集合中心最近",
     farthest9: "最远 9 张", farthest9_sub: "先看这些",
@@ -75,6 +77,8 @@ window.LOOKPRINT_I18N = {
     p90: "P90", p90_sub: "default outlier cut",
     clusters: "GMM clusters", clusters_sub: "1 = single style cluster",
     no_fp: "No fingerprint yet", no_fp_sub: "set up in the Project tab",
+    go_setup: "Set up a gold-standard dataset in the Project tab",
+    go_setup_desc: "Pick your curated dataset folder in the Project tab and analyze it — everything starts there. Dropping only writes a marker; originals are never touched.",
 
     typical9: "Typical 9", typical9_sub: "closest to set center",
     farthest9: "Farthest 9", farthest9_sub: "review these first",
@@ -131,6 +135,12 @@ window.LOOKPRINT_I18N = {
     dir_high: "high", dir_low: "low",
   },
 };
+
+// 可用语言：新增语言时在此加一项，并在上方 I18N 里补全对应字典即可
+window.LOOKPRINT_LANGUAGES = [
+  { code: "zh", name: "中文" },
+  { code: "en", name: "English" },
+];
 
 window.t = function t(key, vars) {
   const lang = (window.LOOKPRINT_LANG || "zh");

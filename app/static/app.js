@@ -69,7 +69,18 @@
     document.documentElement.lang = state.lang === "en" ? "en" : "zh-CN";
     $$("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n)));
     $$("[data-i18n-ph]").forEach((el) => (el.placeholder = t(el.dataset.i18nPh)));
-    $("#langBtn").textContent = state.lang === "en" ? "中文" : "EN";
+    // 语言按钮显示当前语言（原生名），下拉里列出全部可选语言
+    const cur = (window.LOOKPRINT_LANGUAGES || []).find((l) => l.code === state.lang);
+    $("#langBtn").textContent = cur ? cur.name : state.lang;
+    $("#langMenu").innerHTML = (window.LOOKPRINT_LANGUAGES || [])
+      .map((l) => `<button data-lang="${l.code}" class="${l.code === state.lang ? "on" : ""}">${l.name}</button>`)
+      .join("");
+    $$("#langMenu button").forEach((b) =>
+      b.addEventListener("click", () => {
+        $("#langMenu").hidden = true;
+        setLang(b.dataset.lang);
+      })
+    );
   }
 
   function setLang(lang) {
@@ -224,15 +235,27 @@
     }
   }
 
+  function emptyGuideHTML() {
+    return `
+      <p>${t("go_setup_desc")}</p>
+      <button class="primary" data-act="go-settings">${t("go_setup")}</button>`;
+  }
+
   async function loadOverview() {
     const ov = await api("/api/overview");
     state.overview = ov;
     state.fingerprint = ov.fingerprint;
     const fp = ov.fingerprint;
+    const guide = $("#emptyGuide");
     if (!fp) {
       $("#heroStats").innerHTML = `<div class="stat"><span>${t("no_fp")}</span><b>${t("no_fp_sub")}</b></div>`;
+      guide.innerHTML = emptyGuideHTML();
+      guide.hidden = false;
+      guide.querySelector("[data-act='go-settings']").addEventListener("click", () => setTab("settings"));
       return;
     }
+    guide.hidden = true;
+    guide.innerHTML = "";
     const cards = [
       ["n_images", fp.n_images, "gold_sub"],
       ["median_dist", fp.maha_median?.toFixed(2), "median_dist_sub"],
@@ -438,7 +461,13 @@
 
   function bind() {
     $$(".tabs button").forEach((b) => b.addEventListener("click", () => setTab(b.dataset.tab)));
-    $("#langBtn").addEventListener("click", () => setLang(state.lang === "en" ? "zh" : "en"));
+    $("#langBtn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      $("#langMenu").hidden = !$("#langMenu").hidden;
+    });
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest(".lang-wrap")) $("#langMenu").hidden = true;
+    });
     $("#dSlider").addEventListener("input", () => {
       $("#dValue").textContent = Number($("#dSlider").value).toFixed(2);
     });

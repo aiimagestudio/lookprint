@@ -22,7 +22,10 @@
       <button data-tab="scan" data-i18n="nav_scan">候选扫描</button>
       <button data-tab="settings" data-i18n="nav_settings">项目</button>
     </nav>
-    <button id="langBtn" class="ghost lang-btn" title="Language">EN</button>
+    <div class="lang-wrap">
+      <button id="langBtn" class="ghost lang-btn">中文</button>
+      <div class="lang-menu" id="langMenu" hidden></div>
+    </div>
     <div class="job" id="jobBar" hidden>
       <span id="jobText"></span>
       <div class="bar"><i id="jobFill"></i></div>
@@ -32,6 +35,7 @@
   <main>
     <section id="view-overview" class="view active">
       <div class="hero-stats" id="heroStats"></div>
+      <div class="empty-guide" id="emptyGuide" hidden></div>
       <div class="split">
         <div>
           <h2><span data-i18n="typical9">典型 9 张</span> <small data-i18n="typical9_sub">离集合中心最近</small></h2>

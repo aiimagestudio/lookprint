@@ -101,7 +101,22 @@ h2 small { color: var(--muted); letter-spacing: 0; text-transform: none; font: 1
 .actions button.on-keep, .lb-actions button.on-keep { background: var(--keep); color: #062; border-color: var(--keep); }
 .actions button.on-drop, .lb-actions button.on-drop { background: var(--drop); color: #fff; border-color: var(--drop); }
 .actions button.on-maybe, .lb-actions button.on-maybe { background: var(--maybe); color: #321; border-color: var(--maybe); }
-.lang-btn { min-width: 44px; }
+.lang-btn { min-width: 84px; }
+.lang-wrap { position: relative; }
+.lang-menu {
+  position: absolute; top: calc(100% + 4px); right: 0; z-index: 30;
+  min-width: 120px; background: var(--panel); border: 1px solid var(--line);
+  display: flex; flex-direction: column; padding: 4px; gap: 2px;
+}
+.lang-menu button { text-align: left; padding: 6px 10px; border: 0; background: transparent; }
+.lang-menu button:hover { background: #2a2430; }
+.lang-menu button.on { color: var(--gold); background: #2a2430; }
+.empty-guide {
+  margin-top: 16px; background: var(--panel); border: 1px solid var(--line);
+  padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; align-items: flex-start;
+}
+.empty-guide p { margin: 0; color: var(--muted); }
+.empty-guide[hidden] { display: none; }
 .plots { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .plots img { width: 100%; border: 1px solid var(--line); background: #111; }
 .chart-wrap { background: var(--panel); border: 1px solid var(--line); padding: 12px; height: 420px; }
