@@ -568,6 +568,25 @@
       renderScan();
       toast(t("marked_n", { n: items.length }));
     });
+    $("#addToGold").addEventListener("click", async () => {
+      const marked = (await api("/api/candidates/marked")).items || [];
+      const paths = marked.map((i) => i.path).filter(Boolean);
+      if (!paths.length) return toast(t("no_marked"));
+      if (!confirm(t("add_to_gold_confirm", { n: paths.length }))) return;
+      try {
+        const r = await api("/api/candidates/add_to_gold", { method: "POST", body: { paths } });
+        const extra = r.skipped ? " " + t("skipped_n", { m: r.skipped }) : "";
+        if (!r.n) {
+          toast(t("add_to_gold_none") + extra);
+          return;
+        }
+        toast(t("added_to_gold", { n: r.n }) + extra);
+        const job = await api("/api/analyze", { method: "POST" });
+        startJobPoll(job);
+      } catch (e) {
+        toast(e.message);
+      }
+    });
     $("#exportMarked").addEventListener("click", () => pickFolder("export", { kind: "candidates" }));
     $("#exportDropped").addEventListener("click", () => pickFolder("export", { kind: "dropped" }));
     $("#exportRemaining").addEventListener("click", () => pickFolder("export", { kind: "remaining" }));

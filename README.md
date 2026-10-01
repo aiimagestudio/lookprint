@@ -36,7 +36,7 @@ Lookprint answers that with interpretable photographic metrics instead: split to
 ## Features
 
 - **Dataset refinement (outlier review)** — sort by Mahalanobis distance; per-image **diagnosis** groups out-of-range metrics into families (toning / light & subject / technical / composite) with a suggested action; keep / maybe / drop with lightbox hotkeys — clean the set before you train
-- **Generation check (candidate scan)** — score any folder against the gold standard; pass/review by the p90 threshold; e.g. point it at your LoRA's output folder to see how well it sticks to the training style
+- **Generation check (candidate scan)** — score any folder against the gold standard; pass/review by the p90 threshold; e.g. point it at your LoRA's output folder to see how well it sticks to the training style. Keepers can be merged straight into the gold-standard folder (copy only, originals untouched, captions follow) to grow the reference set over time
 - **Fingerprint** — ~35 interpretable metrics per image → mean/covariance of the set = the style fingerprint; GMM (BIC-selected) clusters, PCA projection
 - **Caption-aware export** — exports copy images *and* their same-stem `.txt` captions together (renames follow collisions), so the output is a ready-to-train image+caption pair
 - **Fully local** — no cloud, no telemetry; dropping is logical, originals untouched, no sidecar files next to your dataset
@@ -63,7 +63,7 @@ Requires Python 3.12+. The dataset folder should contain images with same-stem `
 
 - **Overview** — fingerprint stats, 9 most-typical / 9 most-distant images, luma & RGB histograms, vectorscope, light×saturation scatter
 - **Outliers** — images above a distance cut (slider); diagnosis under each card; keep/maybe/drop (`1`/`2`/`3` in the lightbox); export remaining or dropped
-- **Scan** — score a candidate folder; ≤ cut = pass, else review; mark and copy marked files (with captions) to a new folder
+- **Scan** — score a candidate folder; ≤ cut = pass, else review; mark, copy marked files (with captions) to a new folder, or merge them straight into the gold standard
 - **Project** — project name, gold path, outlier percentile (default 90)
 
 ## Command line

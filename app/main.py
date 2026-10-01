@@ -370,6 +370,51 @@ def get_marked():
     return load_json(project_dir(proj["id"]) / "marked_candidates.json", {"items": []})
 
 
+class AddToGoldBody(BaseModel):
+    paths: list[str] | None = None  # 缺省 = 全部已标记候选
+
+
+CAPTION_SUFFIXES = {".txt", ".caption"}
+
+
+@app.post("/api/candidates/add_to_gold")
+def add_to_gold(body: AddToGoldBody):
+    """把候选扫描中标记的图片并入金标准目录（复制，原图不动），用于扩充金标准。"""
+    proj = load_project()
+    if not proj.get("gold_path"):
+        raise HTTPException(400, "金标准路径未设置，请先在「项目」页设置")
+    gold = Path(proj["gold_path"]).expanduser()
+    if not gold.is_dir():
+        raise HTTPException(400, f"金标准文件夹不存在: {gold}")
+    try:
+        gold_res = gold.resolve()
+    except OSError:
+        gold_res = gold
+    paths = body.paths
+    if paths is None:
+        marked = load_json(project_dir(proj["id"]) / "marked_candidates.json", {"items": []})
+        paths = [it.get("path") for it in marked.get("items") or []]
+    sources, skipped = [], 0
+    for p in paths:
+        if not p:
+            continue
+        f = Path(p).expanduser()
+        try:
+            res = f.resolve()
+            if not f.is_file() or res == gold_res or gold_res in res.parents:
+                skipped += 1  # 不存在，或已在金标准目录内
+                continue
+        except OSError:
+            skipped += 1
+            continue
+        sources.append(f)
+    written: list[str] = []
+    if sources:
+        written = copy_files(sources, gold)
+    n = sum(1 for w in written if Path(w).suffix.lower() not in CAPTION_SUFFIXES)
+    return {"ok": True, "n": n, "skipped": skipped, "gold": str(gold), "files": written}
+
+
 @app.post("/api/export")
 def export_files(body: ExportBody):
     if body.kind not in {"candidates", "dropped", "remaining"}:
