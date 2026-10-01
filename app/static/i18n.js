@@ -39,7 +39,7 @@ window.LOOKPRINT_I18N = {
     add_to_gold_confirm: "将把 {n} 张已标记图片复制进金标准目录（重名自动改名，caption 一并复制，原图不动）。完成后会自动重新分析以更新指纹。继续？",
     added_to_gold: "已将 {n} 张并入金标准目录，正在重新分析…",
     add_to_gold_none: "没有需要加入的图片",
-    skipped_n: "跳过 {m} 张（已在金标准目录内）",
+    skipped_n: "跳过 {m} 张（金标准内已有相同内容）",
     no_marked: "没有已标记的图片",
 
     gold_title: "金标准数据集",
@@ -111,7 +111,7 @@ window.LOOKPRINT_I18N = {
     add_to_gold_confirm: "Copy {n} marked images into the gold-standard folder? (Name collisions are renamed, captions come along, originals untouched.) The fingerprint will be rebuilt automatically afterwards. Continue?",
     added_to_gold: "Added {n} images to the gold-standard folder — re-analyzing…",
     add_to_gold_none: "Nothing to add",
-    skipped_n: "{m} skipped (already in the gold standard)",
+    skipped_n: "{m} skipped (identical copies already in the gold standard)",
     no_marked: "No marked images",
 
     gold_title: "Gold-standard dataset",

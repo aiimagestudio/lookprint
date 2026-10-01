@@ -141,20 +141,46 @@ def read_metrics_csv(path: Path) -> list[dict]:
     return out
 
 
+def _same_file(a: Path, b: Path) -> bool:
+    """大小相同再逐字节比较，判断两个文件是否内容一致。"""
+    if a.stat().st_size != b.stat().st_size:
+        return False
+    return a.read_bytes() == b.read_bytes()
+
+
+def _free_stem(dest: Path, stem: str, suffix: str, src: Path) -> str | None:
+    """为同名冲突找一个不重名的新词干；若目录内已有同内容副本则返回 None（跳过）。"""
+    n = 1
+    while True:
+        cand = dest / f"{stem}_{n}{suffix}"
+        if not cand.exists():
+            return f"{stem}_{n}"
+        if _same_file(src, cand):
+            return None
+        n += 1
+
+
 def copy_files(paths: list[Path], dest: Path) -> list[str]:
-    """Copy files (and their same-stem caption files) into dest. Never deletes originals."""
+    """Copy files (and their same-stem caption files) into dest. Never deletes originals.
+
+    同名且内容相同 → 跳过（视为已存在）；同名但内容不同 → 改名为 `名字_1`、`名字_2`…，caption 跟随。
+    """
     dest.mkdir(parents=True, exist_ok=True)
     written = []
     for src in paths:
         src = Path(src)
         if not src.is_file():
             continue
+        stem, suffix = src.stem, src.suffix
         target = dest / src.name
         if target.exists():
-            stem = f"{src.stem}__{abs(hash(str(src))) % 10**8}"
-            target = dest / f"{stem}{src.suffix}"
-        else:
-            stem = src.stem
+            if _same_file(src, target):
+                continue
+            new_stem = _free_stem(dest, stem, suffix, src)
+            if new_stem is None:
+                continue
+            stem = new_stem
+            target = dest / f"{stem}{suffix}"
         shutil.copy2(src, target)
         written.append(str(target))
         for ext in CAPTION_EXTS:
