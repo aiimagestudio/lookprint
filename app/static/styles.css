@@ -117,8 +117,11 @@ h2 small { color: var(--muted); letter-spacing: 0; text-transform: none; font: 1
 }
 .empty-guide p { margin: 0; color: var(--muted); }
 .empty-guide[hidden] { display: none; }
-.plots { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.plots img { width: 100%; border: 1px solid var(--line); background: #111; }
+.plots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.plots img {
+  width: 100%; height: 360px; object-fit: contain;
+  border: 1px solid var(--line); background: #111;
+}
 .chart-wrap { background: var(--panel); border: 1px solid var(--line); padding: 12px; height: 420px; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
 .toolbar input[type="text"], .panel input, .panel input[type="number"] {
@@ -200,8 +203,10 @@ h2 small { color: var(--muted); letter-spacing: 0; text-transform: none; font: 1
 .empty { color: var(--muted); padding: 40px 0; text-align: center; }
 @media (max-width: 980px) {
   .hero-stats, .split, .plots, .grid.three { grid-template-columns: 1fr 1fr; }
+  .plots img { height: 280px; }
 }
 @media (max-width: 640px) {
   .hero-stats, .split, .plots, .grid.three { grid-template-columns: 1fr; }
+  .plots img { height: auto; }
   .top { flex-wrap: wrap; }
 }
