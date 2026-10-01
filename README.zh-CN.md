@@ -14,12 +14,12 @@
 
 English | [简体中文](README.zh-CN.md) | [设计说明](notes/DESIGN.md)
 
-<!-- 截图：放 2–3 张 PNG 到 docs/screenshots/ 并取消注释
 <p align="center">
-  <img src="docs/screenshots/overview.png" width="45%" />
-  <img src="docs/screenshots/outlier-diagnosis.png" width="45%" />
+  <img src="docs/screenshots/overview-cards.zh.png" width="49%" alt="概览——指纹统计" />
+  <img src="docs/screenshots/overview-graphs.zh.png" width="49%" alt="概览——色阶、示波器、PCA" />
+  <img src="docs/screenshots/outlier-review.zh.png" width="49%" alt="离群筛选与诊断" />
+  <img src="docs/screenshots/scan.zh.png" width="49%" alt="候选文件夹扫描" />
 </p>
--->
 
 ## 为什么需要它
 

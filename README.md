@@ -10,12 +10,12 @@ Runs fully local as a small web UI (FastAPI, port 8788): histograms and scopes, 
 
 English | [简体中文](README.zh-CN.md) | [设计说明 / Design notes](notes/DESIGN.md)
 
-<!-- Screenshots: drop 2–3 PNGs into docs/screenshots/ and uncomment
 <p align="center">
-  <img src="docs/screenshots/overview.png" width="45%" />
-  <img src="docs/screenshots/outlier-diagnosis.png" width="45%" />
+  <img src="docs/screenshots/overview-cards.png" width="49%" alt="Overview — fingerprint stats" />
+  <img src="docs/screenshots/overview-graphs.png" width="49%" alt="Overview — histograms, vectorscope, PCA" />
+  <img src="docs/screenshots/outlier-review.png" width="49%" alt="Outlier review with diagnosis" />
+  <img src="docs/screenshots/scan.png" width="49%" alt="Candidate folder scanning" />
 </p>
--->
 
 ## Why
 
