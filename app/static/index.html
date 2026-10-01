@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lookprint</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="sprocket" aria-hidden="true"></div>
+  <header class="top">
+    <div class="brand">
+      <div class="logo">LP</div>
+      <div>
+        <h1>Lookprint</h1>
+        <p class="tag" id="projectTag">视觉风格指纹</p>
+      </div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="overview" class="active">概览</button>
+      <button data-tab="review">离群筛选</button>
+      <button data-tab="scan">候选扫描</button>
+      <button data-tab="settings">项目</button>
+    </nav>
+    <div class="job" id="jobBar" hidden>
+      <span id="jobText"></span>
+      <div class="bar"><i id="jobFill"></i></div>
+    </div>
+  </header>
+
+  <main>
+    <section id="view-overview" class="view active">
+      <div class="hero-stats" id="heroStats"></div>
+      <div class="split">
+        <div>
+          <h2>典型 9 张 <small>离集合中心最近</small></h2>
+          <div class="grid three" id="typicalGrid"></div>
+        </div>
+        <div>
+          <h2>最远 9 张 <small>先看这些</small></h2>
+          <div class="grid three" id="outlierPreview"></div>
+        </div>
+      </div>
+      <h2>色阶与示波器</h2>
+      <div class="plots" id="plots"></div>
+      <h2>光影 × 饱和</h2>
+      <div class="chart-wrap"><canvas id="scatterChart"></canvas></div>
+    </section>
+
+    <section id="view-review" class="view">
+      <div class="toolbar">
+        <label>距离阈值
+          <input type="range" id="dSlider" min="3" max="14" step="0.05" />
+          <b id="dValue">—</b>
+        </label>
+        <span id="reviewCount" class="pill"></span>
+        <div class="chips" id="decisionFilter">
+          <button data-f="" class="active">全部</button>
+          <button data-f="open">未标</button>
+          <button data-f="keep">保留</button>
+          <button data-f="maybe">待定</button>
+          <button data-f="drop">剔除</button>
+        </div>
+        <button class="primary" id="exportRemaining">导出清理后剩余…</button>
+        <button class="ghost" id="exportDropped">导出已剔除…</button>
+      </div>
+      <p class="hint" id="reviewHint">剔除只写入标记，金标准原图不动。诊断分色：红＝调色（风格本身，建议复核/剔除）、蓝＝光影·题材（布光变体，建议保留）、紫＝多维偏离、黄＝技术（重压缩/锐化噪声）、灰＝组合偏离（单项未越界但多项温和偏高叠加，看「偏离贡献」项）。距离只是排序，去留看诊断和你的眼睛。</p>
+      <div class="grid cards" id="reviewGrid"></div>
+    </section>
+
+    <section id="view-scan" class="view">
+      <div class="toolbar">
+        <input type="text" id="scanFolder" placeholder="候选图片文件夹路径" spellcheck="false" />
+        <button id="browseBtn" type="button">选择文件夹</button>
+        <label class="check"><input type="checkbox" id="scanRecursive" /> 含子文件夹</label>
+        <button class="primary" id="scanBtn">扫描</button>
+        <span id="scanSummary" class="pill"></span>
+      </div>
+      <div class="toolbar">
+        <div class="chips" id="scanFilter">
+          <button data-f="pass" class="active">符合</button>
+          <button data-f="review">需复核</button>
+          <button data-f="marked">已标记</button>
+          <button data-f="all">全部</button>
+        </div>
+        <button class="ghost" id="markPass">标记当前符合项</button>
+        <button class="primary" id="exportMarked">复制已标记到文件夹…</button>
+      </div>
+      <div class="grid cards" id="scanGrid"></div>
+    </section>
+
+    <section id="view-settings" class="view">
+      <div class="panel">
+        <h2>金标准数据集</h2>
+        <p class="hint">这批图是风格正类。指纹从它们计算，新图按马氏距离靠近程度打分。</p>
+        <label>项目名 <input id="projName" /></label>
+        <label>金标准路径
+          <div class="row">
+            <input id="goldPath" spellcheck="false" />
+            <button id="browseGold" type="button">选择文件夹</button>
+          </div>
+        </label>
+        <label>离群分位（默认 90）
+          <input id="percentile" type="number" min="50" max="99.5" step="0.5" />
+        </label>
+        <div class="row">
+          <button class="primary" id="saveProject">保存</button>
+          <button id="reanalyze">重新分析金标准</button>
+        </div>
+        <p class="hint" id="settingsStatus"></p>
+      </div>
+    </section>
+  </main>
+
+  <div id="lightbox" class="lightbox" hidden>
+    <button class="lb-close" id="lbClose">×</button>
+    <button class="lb-nav prev" id="lbPrev">‹</button>
+    <img id="lbImg" alt="" />
+    <button class="lb-nav next" id="lbNext">›</button>
+    <div class="lb-meta">
+      <div>
+        <strong id="lbName"></strong>
+        <span id="lbDist"></span>
+        <div class="flags" id="lbFlags"></div>
+      </div>
+      <div class="lb-actions" id="lbActions"></div>
+    </div>
+  </div>
+
+  <div id="folderModal" class="modal" hidden>
+    <div class="modal-card">
+      <header>
+        <strong id="fmTitle">选择文件夹</strong>
+        <button class="ghost" id="fmClose">关闭</button>
+      </header>
+      <div class="crumb" id="fmPath"></div>
+      <div class="fm-list" id="fmList"></div>
+      <footer>
+        <span id="fmInfo"></span>
+        <button class="primary" id="fmPick">使用此文件夹</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" hidden></div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="/static/app.js"></script>
+</body>
+</html>
