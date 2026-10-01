@@ -9,9 +9,8 @@ window.LOOKPRINT_I18N = {
     median_dist: "距离中位", median_dist_sub: "越小越像集合",
     p90: "90 分位", p90_sub: "默认离群阈值",
     clusters: "GMM 簇", clusters_sub: "1 = 风格单簇",
-    no_fp: "还没有指纹", no_fp_sub: "可在「项目」里分析",
     go_setup: "去「项目」页设置金标准数据集",
-    go_setup_desc: "先在「项目」页设置你已选稳的数据集文件夹并分析，之后一切从这里开始。剔除只写标记，原图不动。",
+    go_setup_desc: "在「项目」页选择作为风格基准的数据集文件夹并分析，概览即会显示这套风格的指纹。",
 
     typical9: "典型 9 张", typical9_sub: "离集合中心最近",
     farthest9: "最远 9 张", farthest9_sub: "先看这些",
@@ -76,9 +75,8 @@ window.LOOKPRINT_I18N = {
     median_dist: "Median dist", median_dist_sub: "smaller = closer to set",
     p90: "P90", p90_sub: "default outlier cut",
     clusters: "GMM clusters", clusters_sub: "1 = single style cluster",
-    no_fp: "No fingerprint yet", no_fp_sub: "set up in the Project tab",
     go_setup: "Set up a gold-standard dataset in the Project tab",
-    go_setup_desc: "Pick your curated dataset folder in the Project tab and analyze it — everything starts there. Dropping only writes a marker; originals are never touched.",
+    go_setup_desc: "Pick the dataset folder that defines your style in the Project tab and analyze it — this overview will then show the fingerprint.",
 
     typical9: "Typical 9", typical9_sub: "closest to set center",
     farthest9: "Farthest 9", farthest9_sub: "review these first",

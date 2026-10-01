@@ -137,10 +137,7 @@ h2 small { color: var(--muted); letter-spacing: 0; text-transform: none; font: 1
 .row { display: flex; gap: 8px; }
 .hint { color: var(--muted); margin: 0; }
 #reviewHint { margin: 0 0 14px; }
-.lightbox[hidden],
-.modal[hidden],
-.toast[hidden],
-.job[hidden] {
+[hidden] {
   display: none !important;
 }
 .lightbox {

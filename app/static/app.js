@@ -169,7 +169,7 @@
     $("#goldPath").value = data.project.gold_path;
     $("#percentile").value = data.project.threshold_percentile;
     if (!data.has_fingerprint) {
-      $("#heroStats").innerHTML = `<div class="stat"><span>${t("no_fp")}</span><b>${t("no_fp_sub")}</b></div>`;
+      $("#heroStats").innerHTML = "";
     }
     return data;
   }
@@ -248,7 +248,7 @@
     const fp = ov.fingerprint;
     const guide = $("#emptyGuide");
     if (!fp) {
-      $("#heroStats").innerHTML = `<div class="stat"><span>${t("no_fp")}</span><b>${t("no_fp_sub")}</b></div>`;
+      $("#heroStats").innerHTML = "";
       guide.innerHTML = emptyGuideHTML();
       guide.hidden = false;
       guide.querySelector("[data-act='go-settings']").addEventListener("click", () => setTab("settings"));
