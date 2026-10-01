@@ -4,9 +4,17 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](requirements.txt)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
-**A visual style fingerprint for LoRA training sets.** Take a dataset you have already hand-curated to a stable look — treat it as the gold standard — and compress it into a set of interpretable photographic metrics. New images are scored by Mahalanobis distance: how close do they sit to *that* look?
+**A visual style fingerprint for LoRA training sets.**
 
-Runs fully local as a small web UI (FastAPI, port 8788): histograms and scopes, outlier review with a lightbox, candidate folder scanning. Dropping an image only writes a marker — gold-standard originals are never touched.
+Curate a set of images to a stable look, treat it as the gold standard, and Lookprint distills it into a set of interpretable photographic metrics — a yardstick it then uses to measure how far any other image sits from that style. It is built around two jobs:
+
+**1. Refine the training set.** It scores every image in the gold-standard dataset and flags the ones that clearly deviate from the overall style. A handful of outliers dilutes a style; dropping them before training (a marker only — originals are never touched) sharpens the fingerprint.
+
+**2. Check the generation output.** Point it at any folder — for example the images your LoRA produces — and it scores each one against the gold standard, so you can see whether the generated results actually match the style of the training set.
+
+The gold standard defines the look: film emulation, cinematic color grading, clean digital, or any style you curate.
+
+Runs fully local as a small web UI (FastAPI, port 8788): histograms and scopes, outlier review with a lightbox, candidate folder scanning — no cloud, no telemetry.
 
 English | [简体中文](README.zh-CN.md) | [设计说明 / Design notes](notes/DESIGN.md)
 
@@ -27,9 +35,9 @@ Lookprint answers that with interpretable photographic metrics instead: split to
 
 ## Features
 
+- **Dataset refinement (outlier review)** — sort by Mahalanobis distance; per-image **diagnosis** groups out-of-range metrics into families (toning / light & subject / technical / composite) with a suggested action; keep / maybe / drop with lightbox hotkeys — clean the set before you train
+- **Generation check (candidate scan)** — score any folder against the gold standard; pass/review by the p90 threshold; e.g. point it at your LoRA's output folder to see how well it sticks to the training style
 - **Fingerprint** — ~35 interpretable metrics per image → mean/covariance of the set = the style fingerprint; GMM (BIC-selected) clusters, PCA projection
-- **Outlier review** — sort by Mahalanobis distance; per-image **diagnosis** groups out-of-range metrics into families (toning / light & subject / technical / composite) with a suggested action; keep / maybe / drop with lightbox hotkeys
-- **Candidate scan** — score any folder against the fingerprint; pass/review by the p90 threshold; mark and copy winners to a new folder
 - **Caption-aware export** — exports copy images *and* their same-stem `.txt` captions together (renames follow collisions), so the output is a ready-to-train image+caption pair
 - **Fully local** — no cloud, no telemetry; dropping is logical, originals untouched, no sidecar files next to your dataset
 
