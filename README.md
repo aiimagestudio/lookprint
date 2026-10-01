@@ -4,7 +4,7 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](requirements.txt)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)]()
 
-**A visual style fingerprint for LoRA training sets.** Take a dataset you have already hand-curated to a stable look — treat it as the gold standard — and compress it into a set of interpretable photographic metrics. New images are scored by Mahalanobis distance: how close do they sit to this *reversal-film color + hard light* look?
+**A visual style fingerprint for LoRA training sets.** Take a dataset you have already hand-curated to a stable look — treat it as the gold standard — and compress it into a set of interpretable photographic metrics. New images are scored by Mahalanobis distance: how close do they sit to *that* look?
 
 Runs fully local as a small web UI (FastAPI, port 8788): histograms and scopes, outlier review with a lightbox, candidate folder scanning. Dropping an image only writes a marker — gold-standard originals are never touched.
 
@@ -23,7 +23,7 @@ Dataset curation tools usually score images with black-box embeddings (CLIP/DINO
 
 > **Is this image the same *look* as my curated set — same color family, same light?**
 
-Lookprint answers that with interpretable film metrics instead: split toning, chiaroscuro bimodality, film highlight roll-off, grain residual, gradient direction. Every number maps to photographic language you can act on. And a key design stance: **a large distance does not mean "delete it"** — a big blue sky or a snowfield is often a lighting variant that helps LoRA generalization. What deserves review is an image whose *toning family* has left the batch.
+Lookprint answers that with interpretable photographic metrics instead: split toning, chiaroscuro bimodality, highlight roll-off, grain residual, gradient direction. Every number maps to photographic language you can act on. The gold set defines the look — film emulation, cinematic color grading, clean digital, or any rendering style you curate. And a key design stance: **a large distance does not mean "delete it"** — a big blue sky or a snowfield is often a lighting variant that helps LoRA generalization. What deserves review is an image whose *toning family* has left the batch.
 
 ## Features
 

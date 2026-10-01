@@ -7,7 +7,7 @@ from lookprint.pipeline import build_gold, score_candidates
 
 
 def main():
-    ap = argparse.ArgumentParser(prog="lookprint", description="Film-look fingerprint for LoRA sets")
+    ap = argparse.ArgumentParser(prog="lookprint", description="Style fingerprint for LoRA dataset curation")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     p_gold = sub.add_parser("analyze", help="build fingerprint from the gold dataset")

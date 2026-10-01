@@ -42,7 +42,7 @@ FINGERPRINT_KEYS = [
 ]
 
 METRIC_META = [
-    ("std_y", "全局对比", "std(Y)", "整图像素亮度的标准差，反转片强光比通常在 0.22–0.29"),
+    ("std_y", "全局对比", "std(Y)", "整图像素亮度的标准差，衡量整体明暗对比强度"),
     ("local_contrast", "局部对比", "high-pass std", "去掉低频后的对比，测光斑和明暗交界"),
     ("dynamic_range", "动态范围", "p95−p05", "去掉两端极值后的跨度"),
     ("bimodality", "双峰性", "BC", ">0.555 表示明暗分离（chiaroscuro）"),
@@ -51,7 +51,7 @@ METRIC_META = [
     ("warmth", "暖度", "R−B", "正值偏暖，负值偏冷"),
     ("split_b", "分色 Δb*", "HL b* − SH b*", "高光相对阴影更黄/暖"),
     ("shadow_frac", "阴影占比", "Y<0.15", "暗部面积"),
-    ("clip_white", "死白占比", "Y>0.98", "胶片滚降时应该很低"),
+    ("clip_white", "死白占比", "Y>0.98", "接近纯白的像素占比，过高说明高光被硬裁切"),
     ("lab_b", "整图 b*", "Lab b*", "正黄负蓝"),
     ("skin_frac", "肤色占比", "Lab blob", "粗略肤色像素比例，不是人脸检测"),
     ("mean_y", "平均亮度", "Y", "整图 Rec.709 亮度"),
@@ -60,7 +60,7 @@ METRIC_META = [
 
 # METRIC_META 的英文版（label, hint），供双语 UI 取用；unit 保持原样
 METRIC_EN = {
-    "std_y": ("global contrast", "std of pixel luma; strong film look usually 0.22–0.29"),
+    "std_y": ("global contrast", "std of pixel luma; overall light-and-shadow contrast"),
     "local_contrast": ("local contrast", "high-pass std; measures light pools and chiaroscuro edges"),
     "dynamic_range": ("dynamic range", "p95−p05 span without the extreme ends"),
     "bimodality": ("bimodality", "BC > 0.555 means separated light/shadow (chiaroscuro)"),
@@ -69,7 +69,7 @@ METRIC_EN = {
     "warmth": ("warmth", "R−B; positive is warm, negative is cool"),
     "split_b": ("split tone Δb*", "HL b* − SH b*; highlights warmer/yellower than shadows"),
     "shadow_frac": ("shadow fraction", "area of Y < 0.15"),
-    "clip_white": ("clipped white", "should be low with film shoulder roll-off"),
+    "clip_white": ("clipped white", "share of near-white pixels; high means hard-clipped highlights"),
     "lab_b": ("global b*", "Lab b*; positive yellow, negative blue"),
     "skin_frac": ("skin fraction", "coarse Lab skin-pixel ratio, not face detection"),
     "mean_y": ("mean luma", "whole-image Rec.709 luma"),
