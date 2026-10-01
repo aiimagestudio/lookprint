@@ -32,6 +32,8 @@ window.LOOKPRINT_I18N = {
 
     scan_ph: "候选图片文件夹路径", browse: "选择文件夹", recursive: "含子文件夹", scan_btn: "扫描",
     scan_summary: "{p} 符合 / {n} 张 · 阈值 {t}",
+    scan_fp: "指纹 {t} · 金标准 {n} 张",
+    scan_stale: "此扫描基于旧指纹，建议重新扫描",
     mark_pass: "标记全部符合项",
     empty_scan: "选择一个文件夹开始扫描", no_match: "没有匹配的图片",
     no_pass: "无符合项可标记",
@@ -104,6 +106,8 @@ window.LOOKPRINT_I18N = {
 
     scan_ph: "Path to candidate folder", browse: "Browse…", recursive: "Include subfolders", scan_btn: "Scan",
     scan_summary: "{p} pass / {n} · cut {t}",
+    scan_fp: "fingerprint {t} · {n} gold images",
+    scan_stale: "Scored with an older fingerprint — rescan advised",
     mark_pass: "Mark all passing",
     empty_scan: "Pick a folder and scan", no_match: "No matching images",
     no_pass: "No passing items",

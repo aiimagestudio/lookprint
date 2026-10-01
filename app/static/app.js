@@ -162,6 +162,7 @@
   async function loadProject() {
     const data = await api("/api/project");
     state.project = data.project;
+    state.fpSummary = data.fingerprint_summary;
     state.metricMeta = data.metric_meta;
     state.metricLabels = data.metric_labels || {};
     $("#projectTag").textContent = `${data.project.name} · ${data.project.gold_path || "—"}`;
@@ -369,6 +370,14 @@
       n: data.n,
       t: Number(data.threshold).toFixed(2),
     });
+    const fp = data.fingerprint || {};
+    if (fp.analyzed_at) {
+      $("#scanSummary").textContent +=
+        " · " + t("scan_fp", { t: fmtStamp(fp.analyzed_at), n: fp.n_images ?? "?" });
+    }
+    const stale =
+      fp.analyzed_at && state.fpSummary?.analyzed_at && fp.analyzed_at !== state.fpSummary.analyzed_at;
+    $("#scanStale").hidden = !stale;
     const f = state.scanFilter;
     const items = data.items.filter((r) => {
       if (f === "pass") return r.pass;
@@ -419,6 +428,13 @@
   function parentDir(p) {
     if (!p) return "";
     return p.replace(/[\\/]+$/, "").replace(/[\\/][^\\/]+$/, "");
+  }
+
+  function fmtStamp(iso) {
+    const d = new Date(iso);
+    return isNaN(d)
+      ? String(iso)
+      : d.toLocaleString([], { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
   }
 
   async function pickFolder(target, opts = {}) {

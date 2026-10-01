@@ -185,6 +185,12 @@ def score_candidates(
         "items": items,
         "scanned_at": utc_now(),
         "project_id": proj["id"],
+        # 记录本次评分依据的指纹版本：指纹一变，同一批图的读数就会整体移动
+        "fingerprint": {
+            "analyzed_at": meta.get("analyzed_at"),
+            "gold_path": meta.get("gold_path"),
+            "n_images": meta.get("n_images"),
+        },
     }
     stamp = result["scanned_at"].replace(":", "").replace("-", "")[:15]
     save_json(d / "scans" / f"{stamp}.json", result)

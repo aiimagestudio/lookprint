@@ -129,6 +129,7 @@ h2 small { color: var(--muted); letter-spacing: 0; text-transform: none; font: 1
   padding: 8px 10px; min-width: 280px; flex: 1;
 }
 .pill { border: 1px solid var(--line); padding: 4px 8px; color: var(--muted); font-size: 12px; }
+.pill.warn { color: #ffb84d; border-color: #8a6a20; }
 .chips { display: flex; gap: 4px; }
 .chips button.active { background: #2a2430; border-color: var(--gold); color: var(--gold); }
 .check { display: flex; gap: 6px; align-items: center; color: var(--muted); }
