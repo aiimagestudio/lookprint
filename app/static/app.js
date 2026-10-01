@@ -276,7 +276,7 @@
     bindGrid($("#typicalGrid"), ov.typical, "preview");
     bindGrid($("#outlierPreview"), ov.outliers, "preview");
     $("#plots").innerHTML = (ov.plots || [])
-      .map((n) => `<img src="/api/plots/${n}?t=${Date.now()}" alt="${n}" />`)
+      .map((n) => `<img src="/api/plots/${n}?t=${Date.now()}&lang=${state.lang}" alt="${n}" />`)
       .join("");
     drawScatter(ov.scatter || []);
   }

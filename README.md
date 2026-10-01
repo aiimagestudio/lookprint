@@ -93,7 +93,7 @@ data/projects/<id>/
   fingerprint.json          human-readable summary
   fingerprint.pkl           scaler / covariance / GMM / PCA
   metrics.csv               per-image metrics + distances
-  plots/                    analysis charts (labels in Chinese)
+  plots/                    analysis charts (Chinese labels; English copies in plots_en/)
   decisions.json            outlier review: keep / maybe / drop
   marked_candidates.json    scan marks
   scans/ + last_scan.json   scan history

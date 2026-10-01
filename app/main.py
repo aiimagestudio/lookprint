@@ -431,10 +431,15 @@ def browse(path: str = ""):
 
 
 @app.get("/api/plots/{name}")
-def get_plot(name: str):
+def get_plot(name: str, lang: str = "zh"):
     if name not in PLOT_NAMES:
         raise HTTPException(404)
-    path = project_dir() / "plots" / name
+    d = project_dir()
+    if lang != "zh":
+        p = d / "plots_en" / name
+        if p.exists():
+            return FileResponse(p)
+    path = d / "plots" / name
     if not path.exists():
         raise HTTPException(404)
     return FileResponse(path)

@@ -81,14 +81,20 @@ def build_gold(project_id: str | None = None, progress: ProgressCb | None = None
     plots_dir = d / "plots"
     plots_dir.mkdir(exist_ok=True)
     plt = setup_mpl()
-    mean_y = plot_luma_overlay(plt, rows, plots_dir / "01_luma_hist_overlay.png")
-    rgb_mean = plot_rgb_mean(plt, rows, plots_dir / "02_rgb_hist_mean.png")
-    plot_vectorscope(plt, rows, plots_dir / "03_vectorscope_lab.png")
-    plot_split_tone(plt, rows, plots_dir / "04_split_tone.png")
-    plot_contrast_sat(plt, rows, maha, plots_dir / "05_contrast_vs_sat.png")
-    plot_pca(plt, fp, names, plots_dir / "06_pca.png")
-    plot_boxplots(plt, rows, [(k, label) for k, label, *_rest in METRIC_META[:12]], plots_dir / "07_metric_boxplots.png")
-    plot_rank(plt, maha, plots_dir / "08_consistency_curve.png")
+    pct = float(proj.get("threshold_percentile", 90))
+    mean_y = None
+    rgb_mean = None
+    for lang in ("zh", "en"):
+        pdir = d / ("plots_en" if lang == "en" else "plots")
+        pdir.mkdir(exist_ok=True)
+        mean_y = plot_luma_overlay(plt, rows, pdir / "01_luma_hist_overlay.png", lang=lang)
+        rgb_mean = plot_rgb_mean(plt, rows, pdir / "02_rgb_hist_mean.png", lang=lang)
+        plot_vectorscope(plt, rows, pdir / "03_vectorscope_lab.png", lang=lang)
+        plot_split_tone(plt, rows, pdir / "04_split_tone.png", lang=lang)
+        plot_contrast_sat(plt, rows, maha, pdir / "05_contrast_vs_sat.png", lang=lang)
+        plot_pca(plt, fp, names, pdir / "06_pca.png", lang=lang)
+        plot_boxplots(plt, rows, [k for k, *_rest in METRIC_META[:12]], pdir / "07_metric_boxplots.png", lang=lang)
+        plot_rank(plt, maha, pdir / "08_consistency_curve.png", lang=lang, percentile=pct)
 
     order_typ = np.argsort(maha)
     order_out = np.argsort(-maha)

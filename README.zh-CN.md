@@ -101,7 +101,7 @@ data/projects/<id>/
   fingerprint.json          可读的指纹摘要
   fingerprint.pkl           scaler / 协方差 / GMM / PCA
   metrics.csv               每张图的指标与距离
-  plots/                    分析图表（图内标签为中文）
+  plots/                    分析图表（中文标签；英文标签存于 plots_en/）
   decisions.json            离群筛选：keep / maybe / drop
   marked_candidates.json    扫描标记
   scans/ + last_scan.json   扫描历史

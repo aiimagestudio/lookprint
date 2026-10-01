@@ -44,7 +44,77 @@ def savefig(plt, fig, path: Path):
     plt.close(fig)
 
 
-def plot_luma_overlay(plt, rows, out: Path):
+# 图表内文字按语言生成：分析时对 zh / en 各渲染一套
+PLOT_TEXT = {
+    "zh": {
+        "set_mean": "集合平均",
+        "shadow_band": "阴影 <0.15",
+        "highlight_band": "高光 >0.85",
+        "luma_x": "亮度 Y (Rec.709)",
+        "pixel_frac": "像素占比",
+        "luma_title": "亮度色阶叠加",
+        "channel_x": "通道值",
+        "rgb_title": "整集平均 RGB 色阶",
+        "shadow_mean": "每图阴影均值",
+        "highlight_mean": "每图高光均值",
+        "a_axis": "a*  (绿 ← → 品红)",
+        "b_axis": "b*  (蓝 ← → 黄)",
+        "vec_title": "Lab 矢量示波器",
+        "no_split": "无分色线",
+        "sh_b": "阴影 b*",
+        "hl_b": "高光 b*",
+        "split_title": "分色：对角线上方 = 高光更暖",
+        "contrast_cb": "对比度 std(Y)",
+        "lc_x": "局部对比度",
+        "sat_y": "平均饱和度 S",
+        "cs_title": "光影强度 × 色彩浓度",
+        "maha_cb": "Mahalanobis 距离",
+        "cluster": "簇 {k}  n={n}",
+        "pca_title": "风格特征 PCA",
+        "box_title": "关键指标分布",
+        "rank_cut": "{p:g} 分位 = {cut:.2f}",
+        "rank_x": "按风格距离排序",
+        "rank_title": "风格一致性曲线",
+    },
+    "en": {
+        "set_mean": "set mean",
+        "shadow_band": "shadows <0.15",
+        "highlight_band": "highlights >0.85",
+        "luma_x": "Luma Y (Rec.709)",
+        "pixel_frac": "pixel share",
+        "luma_title": "Luma histogram overlay",
+        "channel_x": "channel value",
+        "rgb_title": "Set-average RGB histogram",
+        "shadow_mean": "per-image shadow mean",
+        "highlight_mean": "per-image highlight mean",
+        "a_axis": "a*  (green ← → magenta)",
+        "b_axis": "b*  (blue ← → yellow)",
+        "vec_title": "Lab vectorscope",
+        "no_split": "no split line",
+        "sh_b": "shadow b*",
+        "hl_b": "highlight b*",
+        "split_title": "Split tone: above diagonal = warmer highlights",
+        "contrast_cb": "contrast std(Y)",
+        "lc_x": "local contrast",
+        "sat_y": "mean saturation S",
+        "cs_title": "Light × saturation",
+        "maha_cb": "Mahalanobis distance",
+        "cluster": "cluster {k}  n={n}",
+        "pca_title": "Style PCA",
+        "box_title": "Key metric distributions",
+        "rank_cut": "p{p:g} = {cut:.2f}",
+        "rank_x": "sorted by style distance",
+        "rank_title": "Style consistency curve",
+    },
+}
+
+
+def _t(lang: str, key: str, **kw) -> str:
+    texts = PLOT_TEXT.get(lang) or PLOT_TEXT["zh"]
+    return texts[key].format(**kw)
+
+
+def plot_luma_overlay(plt, rows, out: Path, lang: str = "zh"):
     fig, ax = plt.subplots(figsize=(9.5, 5.2))
     bins = np.linspace(0, 1, 65)
     centers = 0.5 * (bins[:-1] + bins[1:])
@@ -55,20 +125,20 @@ def plot_luma_overlay(plt, rows, out: Path):
         acc += h
         ax.plot(centers, h, color="#c4b8a4", alpha=0.12, lw=0.8)
     mean = acc / max(len(rows), 1)
-    ax.plot(centers, mean, color="#f0c060", lw=2.4, label="集合平均")
-    ax.axvspan(0, 0.15, color="#3a5a8c", alpha=0.12, label="阴影 <0.15")
-    ax.axvspan(0.85, 1, color="#c06040", alpha=0.12, label="高光 >0.85")
+    ax.plot(centers, mean, color="#f0c060", lw=2.4, label=_t(lang, "set_mean"))
+    ax.axvspan(0, 0.15, color="#3a5a8c", alpha=0.12, label=_t(lang, "shadow_band"))
+    ax.axvspan(0.85, 1, color="#c06040", alpha=0.12, label=_t(lang, "highlight_band"))
     ax.set_xlim(0, 1)
-    ax.set_xlabel("亮度 Y (Rec.709)")
-    ax.set_ylabel("像素占比")
-    ax.set_title("亮度色阶叠加")
+    ax.set_xlabel(_t(lang, "luma_x"))
+    ax.set_ylabel(_t(lang, "pixel_frac"))
+    ax.set_title(_t(lang, "luma_title"))
     ax.grid(True, axis="y")
     ax.legend(frameon=False, loc="upper right")
     savefig(plt, fig, out)
     return mean.tolist()
 
 
-def plot_rgb_mean(plt, rows, out: Path):
+def plot_rgb_mean(plt, rows, out: Path, lang: str = "zh"):
     fig, ax = plt.subplots(figsize=(9.5, 5.0))
     bins = np.linspace(0, 1, 33)
     centers = 0.5 * (bins[:-1] + bins[1:])
@@ -82,16 +152,16 @@ def plot_rgb_mean(plt, rows, out: Path):
     ax.fill_between(centers, hg, color="#50c070", alpha=0.12)
     ax.fill_between(centers, hb, color="#5090e0", alpha=0.12)
     ax.set_xlim(0, 1)
-    ax.set_xlabel("通道值")
-    ax.set_ylabel("像素占比")
-    ax.set_title("整集平均 RGB 色阶")
+    ax.set_xlabel(_t(lang, "channel_x"))
+    ax.set_ylabel(_t(lang, "pixel_frac"))
+    ax.set_title(_t(lang, "rgb_title"))
     ax.grid(True, axis="y")
     ax.legend(frameon=False)
     savefig(plt, fig, out)
     return {"r": hr.tolist(), "g": hg.tolist(), "b": hb.tolist()}
 
 
-def plot_vectorscope(plt, rows, out: Path):
+def plot_vectorscope(plt, rows, out: Path, lang: str = "zh"):
     fig, ax = plt.subplots(figsize=(7.2, 7.0))
     rng = np.random.default_rng(1)
     a_all, b_all = [], []
@@ -107,51 +177,51 @@ def plot_vectorscope(plt, rows, out: Path):
     sb = [r["shadow_b"] for r in rows]
     ha = [r["highlight_a"] for r in rows]
     hb = [r["highlight_b"] for r in rows]
-    ax.scatter(sa, sb, s=18, c="#4aa3ff", alpha=0.75, label="每图阴影均值", zorder=3)
-    ax.scatter(ha, hb, s=18, c="#ffb14a", alpha=0.75, label="每图高光均值", zorder=3)
+    ax.scatter(sa, sb, s=18, c="#4aa3ff", alpha=0.75, label=_t(lang, "shadow_mean"), zorder=3)
+    ax.scatter(ha, hb, s=18, c="#ffb14a", alpha=0.75, label=_t(lang, "highlight_mean"), zorder=3)
     ax.axhline(0, color="#666", lw=0.6)
     ax.axvline(0, color="#666", lw=0.6)
-    ax.set_xlabel("a*  (绿 ← → 品红)")
-    ax.set_ylabel("b*  (蓝 ← → 黄)")
-    ax.set_title("Lab 矢量示波器")
+    ax.set_xlabel(_t(lang, "a_axis"))
+    ax.set_ylabel(_t(lang, "b_axis"))
+    ax.set_title(_t(lang, "vec_title"))
     ax.set_aspect("equal", adjustable="box")
     ax.legend(frameon=False, loc="upper left")
     savefig(plt, fig, out)
 
 
-def plot_split_tone(plt, rows, out: Path):
+def plot_split_tone(plt, rows, out: Path, lang: str = "zh"):
     fig, ax = plt.subplots(figsize=(8.2, 6.4))
     xs = [r["shadow_b"] for r in rows]
     ys = [r["highlight_b"] for r in rows]
     cs = [r["std_y"] for r in rows]
     sc = ax.scatter(xs, ys, c=cs, cmap="cividis", s=36, alpha=0.9, edgecolors="none")
     lo, hi = min(xs + ys), max(xs + ys)
-    ax.plot([lo, hi], [lo, hi], color="#666", ls="--", lw=1, label="无分色线")
-    ax.set_xlabel("阴影 b*")
-    ax.set_ylabel("高光 b*")
-    ax.set_title("分色：对角线上方 = 高光更暖")
+    ax.plot([lo, hi], [lo, hi], color="#666", ls="--", lw=1, label=_t(lang, "no_split"))
+    ax.set_xlabel(_t(lang, "sh_b"))
+    ax.set_ylabel(_t(lang, "hl_b"))
+    ax.set_title(_t(lang, "split_title"))
     cb = fig.colorbar(sc, ax=ax, fraction=0.046)
-    cb.set_label("对比度 std(Y)")
+    cb.set_label(_t(lang, "contrast_cb"))
     ax.legend(frameon=False)
     ax.grid(True)
     savefig(plt, fig, out)
 
 
-def plot_contrast_sat(plt, rows, maha, out: Path):
+def plot_contrast_sat(plt, rows, maha, out: Path, lang: str = "zh"):
     fig, ax = plt.subplots(figsize=(8.4, 6.2))
     xs = [r["local_contrast"] for r in rows]
     ys = [r["sat_mean"] for r in rows]
     sc = ax.scatter(xs, ys, c=maha, cmap="magma", s=38, alpha=0.9, edgecolors="none")
-    ax.set_xlabel("局部对比度")
-    ax.set_ylabel("平均饱和度 S")
-    ax.set_title("光影强度 × 色彩浓度")
+    ax.set_xlabel(_t(lang, "lc_x"))
+    ax.set_ylabel(_t(lang, "sat_y"))
+    ax.set_title(_t(lang, "cs_title"))
     cb = fig.colorbar(sc, ax=ax, fraction=0.046)
-    cb.set_label("Mahalanobis 距离")
+    cb.set_label(_t(lang, "maha_cb"))
     ax.grid(True)
     savefig(plt, fig, out)
 
 
-def plot_pca(plt, fp, names, out: Path):
+def plot_pca(plt, fp, names, out: Path, lang: str = "zh"):
     fig, ax = plt.subplots(figsize=(8.6, 6.4))
     xy = fp["xy"]
     labels = fp["labels"]
@@ -165,7 +235,7 @@ def plot_pca(plt, fp, names, out: Path):
             c=colors[int(k) % 4],
             s=42,
             alpha=0.88,
-            label=f"簇 {int(k)+1}  n={int(m.sum())}",
+            label=_t(lang, "cluster", k=int(k) + 1, n=int(m.sum())),
             edgecolors="none",
         )
     order = np.argsort(-maha)
@@ -181,16 +251,20 @@ def plot_pca(plt, fp, names, out: Path):
     ev = fp["explained"]
     ax.set_xlabel(f"PC1  {ev[0]*100:.1f}%")
     ax.set_ylabel(f"PC2  {ev[1]*100:.1f}%")
-    ax.set_title("风格特征 PCA")
+    ax.set_title(_t(lang, "pca_title"))
     ax.legend(frameon=False)
     ax.grid(True)
     savefig(plt, fig, out)
 
 
-def plot_boxplots(plt, rows, keys_cn, out: Path):
+def plot_boxplots(plt, rows, keys, out: Path, lang: str = "zh"):
+    from lookprint.constants import METRIC_LABELS
+
     fig, axes = plt.subplots(3, 4, figsize=(12.5, 8.4))
     axes = axes.ravel()
-    for ax, (key, label) in zip(axes, keys_cn):
+    for ax, key in zip(axes, keys):
+        meta = METRIC_LABELS.get(key) or {}
+        label = meta.get(lang) or key
         vals = [r[key] for r in rows]
         bp = ax.boxplot(
             vals,
@@ -209,21 +283,21 @@ def plot_boxplots(plt, rows, keys_cn, out: Path):
         ax.set_title(label, fontsize=10)
         ax.set_xticks([])
         ax.grid(True, axis="y")
-    fig.suptitle("关键指标分布", fontsize=13)
+    fig.suptitle(_t(lang, "box_title"), fontsize=13)
     savefig(plt, fig, out)
 
 
-def plot_rank(plt, maha, out: Path):
+def plot_rank(plt, maha, out: Path, lang: str = "zh", percentile: float = 90):
     fig, ax = plt.subplots(figsize=(9.5, 5.2))
     order = np.argsort(maha)
     y = maha[order]
     ax.plot(np.arange(len(y)), y, color="#f0c060", lw=1.8)
     ax.fill_between(np.arange(len(y)), y, color="#f0c060", alpha=0.15)
-    cut = float(np.percentile(maha, 90))
-    ax.axhline(cut, color="#e07070", ls="--", lw=1, label=f"90 分位 = {cut:.2f}")
-    ax.set_xlabel("按风格距离排序")
-    ax.set_ylabel("Mahalanobis 距离")
-    ax.set_title("风格一致性曲线")
+    cut = float(np.percentile(maha, percentile))
+    ax.axhline(cut, color="#e07070", ls="--", lw=1, label=_t(lang, "rank_cut", p=percentile, cut=cut))
+    ax.set_xlabel(_t(lang, "rank_x"))
+    ax.set_ylabel(_t(lang, "maha_cb"))
+    ax.set_title(_t(lang, "rank_title"))
     ax.legend(frameon=False)
     ax.grid(True, axis="y")
     savefig(plt, fig, out)
