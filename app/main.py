@@ -210,7 +210,11 @@ def overview():
             st = fp["metrics"].get(key)
             if not st:
                 continue
-            cards.append({"key": key, "label": label, "unit": unit, "hint": hint, **st})
+            en = METRIC_EN.get(key)
+            cards.append(
+                {"key": key, "label": label, "unit": unit, "hint": hint,
+                 "label_en": en[0] if en else label, "hint_en": en[1] if en else hint, **st}
+            )
     typical, outliers = [], []
     if rows:
         ordered = sorted(rows, key=lambda r: float(r.get("mahalanobis") or 0))
